@@ -37,8 +37,7 @@ class PlannerConfig:
 
     @classmethod
     def toggle_setting(cls, setting: str, val: str):
-        if hasattr(cls, setting):
-            cls.settings[setting] = val
+        cls.settings[setting] = val
 
 
 class Connector:
@@ -59,18 +58,17 @@ class Executor:
     connector = Connector("tpc", "postgres", "host", "5432", "pasword")
     pc = PlannerConfig()
 
-    def disable_setting(self, setting: str):
-        with Executor.connector.connect() as conn:
-            with conn.cursor() as cur:
-                cur.execute(Executor.pc.disable_statement(setting))
+    @classmethod
+    def disable_setting(cls, setting: str):
+        cls.pc.toggle_setting(setting, "off")
 
-    def enable_setting(self, setting: str):
-        with Executor.connector.connect() as conn:
-            with conn.cursor() as cur:
-                cur.execute(Executor.pc.enable_statement(setting))
+    @classmethod
+    def enable_setting(cls, setting: str):
+        cls.pc.toggle_setting(setting, "on")
 
-    def execute_with_options(self, query: str):
-        options = Executor.pc.get_config_statements()
+    @classmethod
+    def execute_with_options(cls, query: str):
+        options = cls.pc.get_config_statements()
         with Executor.connector.connect() as conn:
             with conn.cursor() as cur:
                 for option in options:
