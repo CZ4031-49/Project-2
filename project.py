@@ -3,31 +3,28 @@ import json
 
 
 class PlannerConfig:
-    enable_bitmapscan = "off"
-    enable_hashjoin = "off"
-    enable_incremental_sort = "off"
-    enable_indexscan = "off"
-    enable_indexonlyscan = "off"
-    enable_material = "off"
-    enable_mergejoin = "off"
-    enable_nestloop = "off"
-    enable_seqscan = "off"
-    enable_sort = "off"
+    settings = {
+        "enable_bitmapscan": "off",
+        "enable_hashjoin": "off",
+        "enable_incremental_sort": "off",
+        "enable_indexscan": "off",
+        "enable_indexonlyscan": "off",
+        "enable_material": "off",
+        "enable_mergejoin": "off",
+        "enable_nestloop": "off",
+        "enable_seqscan": "off",
+        "enable_sort": "off",
+    }
 
     @classmethod
-    def init_default_config(cls):
-        statements = [
-            cls.disable_statement("enable_bitmapscan"),
-            cls.disable_statement("enable_hashjoin"),
-            cls.disable_statement("enable_incremental_sort"),
-            cls.disable_statement("enable_indexscan"),
-            cls.disable_statement("enable_indexonlyscan"),
-            cls.disable_statement("enable_material"),
-            cls.disable_statement("enable_mergejoin"),
-            cls.disable_statement("enable_nestloop"),
-            cls.disable_statement("enable_seqscan"),
-            cls.disable_statement("enable_sort"),
-        ]
+    def get_config_statements(cls):
+        statements = []
+        for k, v in cls.settings.items():
+            if v == "on":
+                statements.append(cls.enable_statement(k))
+            else:
+                statements.append(cls.disable_statement(k))
+
         return statements
 
     @classmethod
@@ -37,6 +34,11 @@ class PlannerConfig:
     @classmethod
     def disable_statement(cls, setting):
         return f"SELECT set_config('{setting}', 'off', true)"
+
+    @classmethod
+    def toggle_setting(cls, setting: str, val: str):
+        if hasattr(cls, setting):
+            cls.settings[setting] = val
 
 
 class Connector:
@@ -53,38 +55,57 @@ class Connector:
         )
 
 
-def selection_planner(query):
-    connector = Connector("dbname", "user", "host", "port", "password")
+class Executor:
+    connector = Connector("tpc", "postgres", "host", "5432", "pasword")
     pc = PlannerConfig()
-    with connector.connect() as conn:
-        with conn.cursor() as cur:
-            config = pc.init_default_config()
-            for statement in config:
-                cur.execute(statement)
 
-            cur.execute(pc.enable_statement("enable_bitmapscan"))
-            cur.execute(query)
-            print(json.dumps(cur.fetchall(), indent=4))
-            cur.execute(pc.disable_statement("enable_bitmapscan"))
+    def disable_setting(self, setting: str):
+        with Executor.connector.connect() as conn:
+            with conn.cursor() as cur:
+                cur.execute(Executor.pc.disable_statement(setting))
 
-            cur.execute(pc.enable_statement("enable_indexonlyscan"))
-            cur.execute(query)
-            print(json.dumps(cur.fetchall(), indent=4))
-            cur.execute(pc.disable_statement("enable_indexonlyscan"))
+    def enable_setting(self, setting: str):
+        with Executor.connector.connect() as conn:
+            with conn.cursor() as cur:
+                cur.execute(Executor.pc.enable_statement(setting))
 
-            cur.execute(pc.enable_statement("enable_indexscan"))
-            cur.execute(query)
-            print(json.dumps(cur.fetchall(), indent=4))
-            cur.execute(pc.disable_statement("enable_indexscan"))
+    def execute_with_options(self, query: str):
+        options = Executor.pc.get_config_statements()
+        with Executor.connector.connect() as conn:
+            with conn.cursor() as cur:
+                for option in options:
+                    cur.execute(option)
 
-            cur.execute(pc.enable_statement("enable_seqscan"))
-            cur.execute(query)
-            print(json.dumps(cur.fetchall(), indent=4))
-            cur.execute(pc.disable_statement("enable_seqscan"))
+                cur.execute(query)
+                res = cur.fetchone()
+                print(json.dumps(res, indent=4))
+                # do sth with the json -> get the best and 2nd best plan?
+
+
+def selection_planner(query):
+    e = Executor()
+
+    e.enable_setting("enable_bitmapscan")
+    e.execute_with_options(query)
+    e.disable_setting("enable_bitmapscan")
+
+    e.enable_setting("enable_indexscan")
+    e.execute_with_options(query)
+    e.disable_setting("enable_indexscan")
+
+    e.enable_setting("enable_indexonlyscan")
+    e.execute_with_options(query)
+    e.disable_setting("enable_indexonlyscan")
+
+    e.enable_setting("enable_seqscan")
+    e.execute_with_options(query)
+    e.disable_setting("enable_seqscan")
 
 
 def main():
-    query = "EXPLAIN (FORMAT JSON) SELECT * FROM customer WHERE c_custkey = 100"
+    query = (
+        "EXPLAIN (FORMAT JSON) SELECT * FROM customer WHERE c_custkey < 100 LIMIT 10"
+    )
     selection_planner(query)
 
 
