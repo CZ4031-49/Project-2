@@ -1,5 +1,8 @@
 import psycopg
 import json
+import logging
+
+logging.basicConfig(filename="preprocessing.log", encoding="utf-8", level=logging.DEBUG)
 
 
 class PlannerConfig:
@@ -76,8 +79,10 @@ class Executor:
 
                 cur.execute(query)
                 res = cur.fetchone()
-                print(json.dumps(res, indent=4))
-                # do sth with the json -> get the best and 2nd best plan?
+                # print(json.dumps(res, indent=4))
+                if res is not None:
+                    return res[0][0]
+                return res
 
     def execute_best_plan(self, query: str):
         options = self.pc.get_best_plan_statements()
@@ -88,45 +93,92 @@ class Executor:
 
                 cur.execute(query)
                 res = cur.fetchone()
-                print(json.dumps(res, indent=4))
+                # print(json.dumps(res, indent=4))
+                if res is not None:
+                    return res[0][0]
+                return res
 
 
 class Preprocessor:
     def __init__(self, connection_string) -> None:
         self.e = Executor(connection_string)
+        self.selection_order = [
+            "enable_bitmapscan",
+            "enable_indexscan",
+            "enable_indexonlyscan",
+            "enable_seqscan",
+            "enable_tidscan",
+        ]
+        self.join_order = ["enable_nestloop", "enable_hashjoin", "enable_mergejoin"]
+
+    def runner(self, query):
+        query = "EXPLAIN (FORMAT JSON) " + query
+        best = self.get_best_plan(query)
+        second = self.get_second_best_plan(query)
+        logging.debug(print(json.dumps(best, indent=4)))
+        logging.debug(print(json.dumps(second, indent=4)))
+        return [best, second]
+
+    def get_best_plan(self, query):
+        res = self.e.execute_best_plan(query)
+        return res
+
+    def get_second_best_plan(self, query: str):
+        plans = self.selection_planner(query)
+        cost_and_index = []
+        for i in range(len(plans)):
+            cost = self.get_node_cost(plans[i], ["Scan"])
+            cost_and_index.append((cost, i))
+
+        sorted_by_cost = sorted(cost_and_index)
+        second_best_scan = self.selection_order[sorted_by_cost[1][1]]
+
+        self.e.enable_setting(second_best_scan)
+        plans = self.join_planner(query)
+        cost_and_index = []
+        for i in range(len(plans)):
+            cost = self.get_node_cost(plans[i], ["Nested", "Join"])
+            cost_and_index.append((cost, i))
+        sorted_by_cost = sorted(cost_and_index)
+        second_best_join = self.join_order[sorted_by_cost[1][1]]
+
+        self.e.enable_setting(second_best_join)
+        second_best_plan = self.e.execute_with_options(query)
+        return second_best_plan
+
+    def get_node_cost(self, plan, nodes):
+        cost = 0
+        current_plan = plan["Plan"]
+        current_level = [current_plan]
+
+        while len(current_level):
+            current_plan = current_level.pop()
+            for node in nodes:
+                if node in current_plan["Node Type"]:
+                    cost += current_plan["Total Cost"]
+                    break
+
+            if "Plans" in current_plan:
+                for plan in current_plan["Plans"]:
+                    current_level.append(plan)
+
+        return cost
 
     def selection_planner(self, query):
-        self.e.execute_best_plan(query)
+        plans = []
 
-        self.e.enable_setting("enable_bitmapscan")
-        self.e.execute_with_options(query)
-        self.e.disable_setting("enable_bitmapscan")
+        for setting in self.selection_order:
+            self.e.enable_setting(setting)
+            plans.append(self.e.execute_with_options(query))
+            self.e.disable_setting(setting)
 
-        self.e.enable_setting("enable_indexscan")
-        self.e.execute_with_options(query)
-        self.e.disable_setting("enable_indexscan")
-
-        self.e.enable_setting("enable_indexonlyscan")
-        self.e.execute_with_options(query)
-        self.e.disable_setting("enable_indexonlyscan")
-
-        self.e.enable_setting("enable_seqscan")
-        self.e.execute_with_options(query)
-        self.e.disable_setting("enable_seqscan")
-
-        self.e.enable_setting("enable_tidscan")
-        self.e.execute_with_options(query)
-        self.e.disable_setting("enable_tidscan")
+        return plans
 
     def join_planner(self, query):
-        self.e.enable_setting("enable_hashjoin")
-        self.e.execute_with_options(query)
-        self.e.disable_setting("enable_hashjoin")
+        plans = []
+        for setting in self.join_order:
+            self.e.enable_setting(setting)
+            plans.append(self.e.execute_with_options(query))
+            self.e.disable_setting(setting)
 
-        self.e.enable_setting("enable_mergejoin")
-        self.e.execute_with_options(query)
-        self.e.disable_setting("enable_mergejoin")
-
-        self.e.enable_setting("enable_nestloop")
-        self.e.execute_with_options(query)
-        self.e.disable_setting("enable_nestloop")
+        return plans
