@@ -2,8 +2,6 @@ import psycopg
 import json
 import logging
 
-logging.basicConfig(filename="preprocessing.log", encoding="utf-8", level=logging.DEBUG)
-
 
 class PlannerConfig:
     def __init__(self) -> None:
@@ -115,8 +113,8 @@ class Preprocessor:
         query = "EXPLAIN (FORMAT JSON) " + query
         best = self.get_best_plan(query)
         second = self.get_second_best_plan(query)
-        logging.debug(print(json.dumps(best, indent=4)))
-        logging.debug(print(json.dumps(second, indent=4)))
+        logging.debug(json.dumps(best, indent=4))
+        logging.debug(json.dumps(second, indent=4))
         return [best, second]
 
     def get_best_plan(self, query):
