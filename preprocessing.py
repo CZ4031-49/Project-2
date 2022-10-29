@@ -14,9 +14,6 @@ class PlannerConfig:
             "enable_mergejoin": "off",
             "enable_nestloop": "off",
             "enable_hashjoin": "off",
-            "enable_incremental_sort": "off",
-            "enable_material": "off",
-            "enable_sort": "off",
         }
 
     def get_config_statements(self):
@@ -34,6 +31,8 @@ class PlannerConfig:
         for k, _ in self.settings.items():
             statements.append(self.enable_statement(k))
 
+        statements.append(self.remove_parallel())
+
         return statements
 
     def enable_statement(self, setting):
@@ -44,6 +43,9 @@ class PlannerConfig:
 
     def toggle_setting(self, setting: str, val: str):
         self.settings[setting] = val
+
+    def remove_parallel(self):
+        return f"SELECT set_config('max_parallel_workers_per_gather', '0', true)"
 
 
 class Connector:
@@ -100,22 +102,27 @@ class Executor:
 class Preprocessor:
     def __init__(self, connection_string) -> None:
         self.e = Executor(connection_string)
-        self.selection_order = [
+        self.settings_order = [
             "enable_bitmapscan",
             "enable_indexscan",
             "enable_indexonlyscan",
             "enable_seqscan",
             "enable_tidscan",
+            "enable_mergejoin",
+            "enable_nestloop",
+            "enable_hashjoin",
         ]
         self.join_order = ["enable_nestloop", "enable_hashjoin", "enable_mergejoin"]
 
     def runner(self, query):
         query = "EXPLAIN (FORMAT JSON) " + query
-        best = self.get_best_plan(query)
-        second = self.get_second_best_plan(query)
-        logging.debug(json.dumps(best, indent=4))
-        logging.debug(json.dumps(second, indent=4))
-        return [best, second]
+        plans = self.bitmap_planner(query)
+        return plans
+        # best = self.get_best_plan(query)
+        # second = self.get_second_best_plan(query)
+        # logging.debug(f"Best Plan: {json.dumps(best, indent=4)}")
+        # logging.debug(f"Second Best Plan: {json.dumps(second, indent=4)}")
+        # return [best, second]
 
     def get_best_plan(self, query):
         res = self.e.execute_best_plan(query)
@@ -123,15 +130,19 @@ class Preprocessor:
 
     def get_second_best_plan(self, query: str):
         plans = self.selection_planner(query)
+        logging.debug(f"Selection plans: {json.dumps(plans, indent=4)}")
         cost_and_index = []
         for i in range(len(plans)):
             cost = self.get_node_cost(plans[i], ["Scan"])
             cost_and_index.append((cost, i))
 
         sorted_by_cost = sorted(cost_and_index)
-        second_best_scan = self.selection_order[sorted_by_cost[1][1]]
+        # second_best_scan = self.selection_order[sorted_by_cost[1][1]]
+        # best_scan = self.selection_order[sorted_by_cost[0][1]]
+        # logging.debug(f"Best scan: {best_scan}")
+        # logging.debug(f"Second best scan: {second_best_scan}")
 
-        self.e.enable_setting(second_best_scan)
+        # self.e.enable_setting(second_best_scan)
         plans = self.join_planner(query)
         cost_and_index = []
         for i in range(len(plans)):
@@ -165,10 +176,12 @@ class Preprocessor:
     def selection_planner(self, query):
         plans = []
 
-        for setting in self.selection_order:
-            self.e.enable_setting(setting)
-            plans.append(self.e.execute_with_options(query))
-            self.e.disable_setting(setting)
+        # for setting in self.selection_order:
+        #     self.e.enable_setting(setting)
+        #     print(setting)
+        #     print(json.dumps(self.e.execute_with_options(query), indent=4))
+        #     plans.append(self.e.execute_with_options(query))
+        #     self.e.disable_setting(setting)
 
         return plans
 
@@ -180,3 +193,34 @@ class Preprocessor:
             self.e.disable_setting(setting)
 
         return plans
+
+    def bitmap_planner(self, query):
+        plans = []
+        length = len(self.e.pc.settings)
+        start = 0
+        final = 2**length
+
+        while start < final:
+            bitmap = bin(start)[2:].zfill(length)
+            # print(bitmap)
+            for i in range(length):
+                setting = self.settings_order[i]
+                if bitmap[i] == "0":
+                    self.e.disable_setting(setting)
+                else:
+                    self.e.enable_setting(setting)
+
+            cur_plan = self.e.execute_with_options(query)
+
+            if self.is_distinct(plans, cur_plan):
+                plans.append(cur_plan)
+
+            start += 1
+
+        return plans
+
+    def is_distinct(self, plans, plan):
+        for i in range(len(plans)):
+            if json.dumps(plans[i]) == json.dumps(plan):
+                return False
+        return True
