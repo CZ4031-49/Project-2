@@ -1,8 +1,11 @@
 import preprocessing
 import logging
+import annotator
 
 
 def main():
+    full_plan_log_print_prefix = "Plans output:"
+
     logging.basicConfig(
         filename="preprocessing.log", encoding="utf-8", level=logging.DEBUG
     )
@@ -10,7 +13,7 @@ def main():
     conn = "connection string"
     preprocessor = preprocessing.Preprocessor(conn)
     plans = preprocessor.runner(query)
-    logging.debug(f"Plans output: {plans}")
+    logging.debug(f"{full_plan_log_print_prefix} {plans}")
 
 
 if __name__ == "__main__":
