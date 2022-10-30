@@ -269,3 +269,219 @@ DEBUG:root:{
     }
 }
 DEBUG:root:Plans output: [{'Plan': {'Node Type': 'Limit', 'Parallel Aware': False, 'Async Capable': False, 'Startup Cost': 13.48, 'Total Cost': 454.98, 'Plan Rows': 10, 'Plan Width': 266, 'Plans': [{'Node Type': 'Hash Join', 'Parent Relationship': 'Outer', 'Parallel Aware': False, 'Async Capable': False, 'Join Type': 'Inner', 'Startup Cost': 13.48, 'Total Cost': 45046.09, 'Plan Rows': 1020, 'Plan Width': 266, 'Inner Unique': True, 'Hash Cond': '(o.o_custkey = c.c_custkey)', 'Plans': [{'Node Type': 'Seq Scan', 'Parent Relationship': 'Outer', 'Parallel Aware': False, 'Async Capable': False, 'Relation Name': 'orders', 'Alias': 'o', 'Startup Cost': 0.0, 'Total Cost': 41095.0, 'Plan Rows': 1500000, 'Plan Width': 107}, {'Node Type': 'Hash', 'Parent Relationship': 'Inner', 'Parallel Aware': False, 'Async Capable': False, 'Startup Cost': 12.21, 'Total Cost': 12.21, 'Plan Rows': 102, 'Plan Width': 159, 'Plans': [{'Node Type': 'Index Scan', 'Parent Relationship': 'Outer', 'Parallel Aware': False, 'Async Capable': False, 'Scan Direction': 'Forward', 'Index Name': 'customer_pkey', 'Relation Name': 'customer', 'Alias': 'c', 'Startup Cost': 0.42, 'Total Cost': 12.21, 'Plan Rows': 102, 'Plan Width': 159, 'Index Cond': '(c_custkey < 100)'}]}]}]}}, {'Plan': {'Node Type': 'Limit', 'Parallel Aware': False, 'Async Capable': False, 'Startup Cost': 10000000000.43, 'Total Cost': 10000005228.7, 'Plan Rows': 10, 'Plan Width': 266, 'Plans': [{'Node Type': 'Nested Loop', 'Parent Relationship': 'Outer', 'Parallel Aware': False, 'Async Capable': False, 'Join Type': 'Inner', 'Startup Cost': 10000000000.43, 'Total Cost': 10000533283.57, 'Plan Rows': 1020, 'Plan Width': 266, 'Inner Unique': True, 'Plans': [{'Node Type': 'Seq Scan', 'Parent Relationship': 'Outer', 'Parallel Aware': False, 'Async Capable': False, 'Relation Name': 'orders', 'Alias': 'o', 'Startup Cost': 10000000000.0, 'Total Cost': 10000041095.0, 'Plan Rows': 1500000, 'Plan Width': 107}, {'Node Type': 'Memoize', 'Parent Relationship': 'Inner', 'Parallel Aware': False, 'Async Capable': False, 'Startup Cost': 0.43, 'Total Cost': 0.46, 'Plan Rows': 1, 'Plan Width': 159, 'Cache Key': 'o.o_custkey', 'Cache Mode': 'logical', 'Plans': [{'Node Type': 'Index Scan', 'Parent Relationship': 'Outer', 'Parallel Aware': False, 'Async Capable': False, 'Scan Direction': 'Forward', 'Index Name': 'customer_pkey', 'Relation Name': 'customer', 'Alias': 'c', 'Startup Cost': 0.42, 'Total Cost': 0.45, 'Plan Rows': 1, 'Plan Width': 159, 'Index Cond': '((c_custkey = o.o_custkey) AND (c_custkey < 100))'}]}]}]}}]
+DEBUG:root:Query: SELECT * FROM customer c, orders o WHERE o.o_custkey=c.c_custkey AND c.c_custkey < 100 AND o.o_custkey > 50 OR o.o_custkey = 1
+DEBUG:root:Query: SELECT * FROM customer c, orders o WHERE o.o_custkey=c.c_custkey AND c.c_custkey < 100 AND o.o_custkey > 50 OR o.o_custkey = 1
+DEBUG:root:[
+  {
+    "Plan": {
+      "Node Type": "Nested Loop",
+      "Parallel Aware": false,
+      "Async Capable": false,
+      "Join Type": "Inner",
+      "Startup Cost": 30000000000.0,
+      "Total Cost": 38797999930.0,
+      "Plan Rows": 2646927,
+      "Plan Width": 266,
+      "Inner Unique": false,
+      "Join Filter": "(((o.o_custkey = c.c_custkey) AND (c.c_custkey < 100) AND (o.o_custkey > 50)) OR (o.o_custkey = 1))",
+      "Plans": [
+        {
+          "Node Type": "Seq Scan",
+          "Parent Relationship": "Outer",
+          "Parallel Aware": false,
+          "Async Capable": false,
+          "Relation Name": "customer",
+          "Alias": "c",
+          "Startup Cost": 10000000000.0,
+          "Total Cost": 10000005085.0,
+          "Plan Rows": 150000,
+          "Plan Width": 159
+        },
+        {
+          "Node Type": "Materialize",
+          "Parent Relationship": "Inner",
+          "Parallel Aware": false,
+          "Async Capable": false,
+          "Startup Cost": 10000000000.0,
+          "Total Cost": 10000073498.0,
+          "Plan Rows": 1500000,
+          "Plan Width": 107,
+          "Plans": [
+            {
+              "Node Type": "Seq Scan",
+              "Parent Relationship": "Outer",
+              "Parallel Aware": false,
+              "Async Capable": false,
+              "Relation Name": "orders",
+              "Alias": "o",
+              "Startup Cost": 10000000000.0,
+              "Total Cost": 10000041095.0,
+              "Plan Rows": 1500000,
+              "Plan Width": 107
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "Plan": {
+      "Node Type": "Nested Loop",
+      "Parallel Aware": false,
+      "Async Capable": false,
+      "Join Type": "Inner",
+      "Startup Cost": 20000000000.0,
+      "Total Cost": 28797999930.0,
+      "Plan Rows": 2646927,
+      "Plan Width": 266,
+      "Inner Unique": false,
+      "Join Filter": "(((o.o_custkey = c.c_custkey) AND (c.c_custkey < 100) AND (o.o_custkey > 50)) OR (o.o_custkey = 1))",
+      "Plans": [
+        {
+          "Node Type": "Seq Scan",
+          "Parent Relationship": "Outer",
+          "Parallel Aware": false,
+          "Async Capable": false,
+          "Relation Name": "customer",
+          "Alias": "c",
+          "Startup Cost": 10000000000.0,
+          "Total Cost": 10000005085.0,
+          "Plan Rows": 150000,
+          "Plan Width": 159
+        },
+        {
+          "Node Type": "Materialize",
+          "Parent Relationship": "Inner",
+          "Parallel Aware": false,
+          "Async Capable": false,
+          "Startup Cost": 10000000000.0,
+          "Total Cost": 10000073498.0,
+          "Plan Rows": 1500000,
+          "Plan Width": 107,
+          "Plans": [
+            {
+              "Node Type": "Seq Scan",
+              "Parent Relationship": "Outer",
+              "Parallel Aware": false,
+              "Async Capable": false,
+              "Relation Name": "orders",
+              "Alias": "o",
+              "Startup Cost": 10000000000.0,
+              "Total Cost": 10000041095.0,
+              "Plan Rows": 1500000,
+              "Plan Width": 107
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "Plan": {
+      "Node Type": "Gather",
+      "Parallel Aware": false,
+      "Async Capable": false,
+      "Startup Cost": 10000001000.0,
+      "Total Cost": 14443707402.7,
+      "Plan Rows": 2646927,
+      "Plan Width": 266,
+      "Workers Planned": 2,
+      "Single Copy": false,
+      "Plans": [
+        {
+          "Node Type": "Nested Loop",
+          "Parent Relationship": "Outer",
+          "Parallel Aware": false,
+          "Async Capable": false,
+          "Join Type": "Inner",
+          "Startup Cost": 10000000000.0,
+          "Total Cost": 14443441710.0,
+          "Plan Rows": 1102886,
+          "Plan Width": 266,
+          "Inner Unique": false,
+          "Join Filter": "(((o.o_custkey = c.c_custkey) AND (c.c_custkey < 100) AND (o.o_custkey > 50)) OR (o.o_custkey = 1))",
+          "Plans": [
+            {
+              "Node Type": "Seq Scan",
+              "Parent Relationship": "Outer",
+              "Parallel Aware": true,
+              "Async Capable": false,
+              "Relation Name": "customer",
+              "Alias": "c",
+              "Startup Cost": 0.0,
+              "Total Cost": 4210.0,
+              "Plan Rows": 62500,
+              "Plan Width": 159
+            },
+            {
+              "Node Type": "Seq Scan",
+              "Parent Relationship": "Inner",
+              "Parallel Aware": false,
+              "Async Capable": false,
+              "Relation Name": "orders",
+              "Alias": "o",
+              "Startup Cost": 0.0,
+              "Total Cost": 41095.0,
+              "Plan Rows": 1500000,
+              "Plan Width": 107
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "Plan": {
+      "Node Type": "Gather",
+      "Parallel Aware": false,
+      "Async Capable": false,
+      "Startup Cost": 1000.0,
+      "Total Cost": 4443707402.7,
+      "Plan Rows": 2646927,
+      "Plan Width": 266,
+      "Workers Planned": 2,
+      "Single Copy": false,
+      "Plans": [
+        {
+          "Node Type": "Nested Loop",
+          "Parent Relationship": "Outer",
+          "Parallel Aware": false,
+          "Async Capable": false,
+          "Join Type": "Inner",
+          "Startup Cost": 0.0,
+          "Total Cost": 4443441710.0,
+          "Plan Rows": 1102886,
+          "Plan Width": 266,
+          "Inner Unique": false,
+          "Join Filter": "(((o.o_custkey = c.c_custkey) AND (c.c_custkey < 100) AND (o.o_custkey > 50)) OR (o.o_custkey = 1))",
+          "Plans": [
+            {
+              "Node Type": "Seq Scan",
+              "Parent Relationship": "Outer",
+              "Parallel Aware": true,
+              "Async Capable": false,
+              "Relation Name": "customer",
+              "Alias": "c",
+              "Startup Cost": 0.0,
+              "Total Cost": 4210.0,
+              "Plan Rows": 62500,
+              "Plan Width": 159
+            },
+            {
+              "Node Type": "Seq Scan",
+              "Parent Relationship": "Inner",
+              "Parallel Aware": false,
+              "Async Capable": false,
+              "Relation Name": "orders",
+              "Alias": "o",
+              "Startup Cost": 0.0,
+              "Total Cost": 41095.0,
+              "Plan Rows": 1500000,
+              "Plan Width": 107
+            }
+          ]
+        }
+      ]
+    }
+  }
+]
