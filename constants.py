@@ -1,4 +1,11 @@
+import sqlparse
+from sqlparse.sql import *
+
+
 class CONSTANTS:
+
+    invalid_sql_tokens = ()
+
     LOG_FILE_FULL_PLAN_PREFIX = "Plans output:"
 
     OUTER_PLAN_NAME = "Plan"
@@ -25,3 +32,12 @@ class CONSTANTS:
     INDEX_NAME = "Index Name"
     PARENT_RELATIONSHIP_NAME = "Parent Relationship"
     SCAN_DIRECTION_NAME = "Scan Direction"
+
+
+    # attribute classes,
+    # such as Cond attributes can appear in multiple nodes like Hash Cond and Index Cond node
+    #
+    CONDITION_TYPE = "condition_type"
+
+
+

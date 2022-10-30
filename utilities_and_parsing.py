@@ -3,6 +3,9 @@ from __future__ import annotations
 import json
 import re
 import ast
+
+import sqlparse
+
 from constants import CONSTANTS
 
 
@@ -17,16 +20,6 @@ def read_log_file(file_name):
     return parsed_log_lines
 
 
-log_to_test = read_log_file("preprocessing.log")
-first_complete_plan_str = log_to_test[0]
-first_complete_plan = ast.literal_eval(first_complete_plan_str)
-
-print(len(first_complete_plan))
-for plan in first_complete_plan:
-    json_dumped_str = json.dumps(plan, sort_keys=True, indent=4)
-    print(json_dumped_str)
-
-
 def chop_plan_dict(plan_in: dict,
                    what_to_remain: list | tuple = (CONSTANTS.NODE_TYPE_NAME,
                                                    CONSTANTS.INTERMEDIATE_PLAN_NAME,
@@ -39,11 +32,13 @@ def chop_plan_dict(plan_in: dict,
     :param what_to_remain: what attribute to summarize
     :return: None
     """
+
     def chop_keys(x):
         list_of_keys = tuple(cur_plan.keys())
         for key in list_of_keys:
             if key not in what_to_remain:
                 x.pop(key)
+
     frontier = [plan_in]
     while len(frontier) > 0:
         cur_plan = frontier.pop()
@@ -69,15 +64,14 @@ def chop_plan_dict(plan_in: dict,
                       f"attribute in this plan, it's either a leaf or error.")
 
 
-try:
-    plan0 = first_complete_plan[0]
-except Exception as e:
-    print(e)
-    plan0 = first_complete_plan
-plan0: dict
-p = plan0.copy()
-chop_plan_dict(p)
-json_dumped_str = json.dumps(p, sort_keys=True, indent=4)
-print(json_dumped_str)
+def parse_sql_query_with_categories(query: str) -> dict[str, list]:
+    parsed = sqlparse.parse(query)[0]
 
+    tokens = {"all": [], "identifiers": [], }
+    for idx, elem in enumerate(parsed.tokens):
+        elem: sqlparse.sql.Token | sqlparse.sql.Identifier | sqlparse.sql.Comparison
+        if isinstance(elem, sqlparse.sql.Identifier):
+            tokens["identifiers"].append(elem)
+        tokens["all"].append(elem)
 
+    return tokens
