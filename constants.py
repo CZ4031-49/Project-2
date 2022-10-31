@@ -1,11 +1,9 @@
 import sqlparse
 from sqlparse.sql import *
+import re
 
 
 class CONSTANTS:
-
-    invalid_sql_tokens = ()
-
     LOG_FILE_FULL_PLAN_PREFIX = "Plans output:"
 
     OUTER_PLAN_NAME = "Plan"
@@ -26,18 +24,32 @@ class CONSTANTS:
 
     # join constants
     JOIN_TYPE_NAME = "Join Type"
+    JOIN_FILTER_NAME = "Join Filter"
 
     # scan constants
+    FILTER_NAME = "Filter"
     INDEX_COND_NAME = "Index Cond"
     INDEX_NAME = "Index Name"
     PARENT_RELATIONSHIP_NAME = "Parent Relationship"
     SCAN_DIRECTION_NAME = "Scan Direction"
 
+    # operation type
+    SCAN = "SCAN"
+    JOIN = "JOIN"
+    EMIT = "EMIT"
 
-    # attribute classes,
-    # such as Cond attributes can appear in multiple nodes like Hash Cond and Index Cond node
-    #
-    CONDITION_TYPE = "condition_type"
+    # sub operation types
+    INDEXSCAN = "Index Scan"
+    SEQSCAN = "Sequential Scan"
 
+    HASHJOIN = "Hash Join"
+    INDEXJOIN = "Index Join"
+    NL = "Nested Loop"
 
+    MATERIALIZE = "Materialize"
+
+    EXPLANATION = "Explanation"
+
+    # status used by annotation to denote few node status
+    HASCHILDWITHINDEX = "Has Child With Index"
 

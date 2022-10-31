@@ -24,7 +24,10 @@ def chop_plan_dict(plan_in: dict,
                    what_to_remain: list | tuple = (CONSTANTS.NODE_TYPE_NAME,
                                                    CONSTANTS.INTERMEDIATE_PLAN_NAME,
                                                    CONSTANTS.OUTER_PLAN_NAME,
-                                                   CONSTANTS.RELATION_NAME)):
+                                                   CONSTANTS.RELATION_NAME,
+                                                   CONSTANTS.FILTER_NAME,
+                                                   CONSTANTS.JOIN_FILTER_NAME,
+                                                   )):
     """
     view a summary based on selected attributes, and this function does an easy job inplace. remember
     to copy your dict and since this is inplace to visualize should still dump as json or sth else
@@ -75,3 +78,14 @@ def parse_sql_query_with_categories(query: str) -> dict[str, list]:
         tokens["all"].append(elem)
 
     return tokens
+
+
+def map_node_type_to_operation(node_type: str) -> str:
+    if re.search("Scan", node_type):
+        return CONSTANTS.SCAN
+    elif node_type == "Nested Loop" or re.search("Join", node_type):
+        return CONSTANTS.JOIN
+    elif node_type == "Materialize":
+        return CONSTANTS.EMIT
+    else:
+        raise RuntimeError(f"unidentified node type: {node_type}")
