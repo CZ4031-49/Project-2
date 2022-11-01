@@ -21,16 +21,35 @@ def main():
     #         "c.c_custkey < 100 AND " \
     #         "o.o_custkey > 50 OR " \
     #         "o.o_custkey = 1"
-    query = """ SELECT s_address, p_partkey
-                FROM supplier s, part p, partsupp ps
-                WHERE  
-                    ps.ps_partkey = p.p_partkey AND
-                    ps.ps_suppkey = s.s_suppkey AND
-                    p.p_retailprice < 500 AND
-                    s.s_phone != '800-807-9579'
-                
-                
-                """
+    queries = [
+        """
+        SELECT s_suppkey, SUM(p_retailprice)
+        FROM supplier s, part p, partsupp ps
+        WHERE ps.ps_partkey = p.p_partkey AND
+              ps.ps_suppkey = s.s_suppkey
+        GROUP BY s.s_suppkey 
+        """,
+
+        """ 
+        SELECT s_address, p_partkey
+        FROM supplier s, part p, partsupp ps
+        WHERE
+            ps.ps_partkey = p.p_partkey AND
+            ps.ps_suppkey = s.s_suppkey AND
+            p.p_retailprice < 500 AND
+            s.s_phone != '800-807-9579'
+        ORDER BY p_partkey
+
+        """,
+        """
+        SELECT * 
+        FROM customer c JOIN orders o 
+        ON o.o_custkey=c.c_custkey 
+        WHERE c.c_custkey < 100 
+        LIMIT 10
+        """,
+
+    ]
 
     conn = """  host=localhost
                 dbname=postgres
@@ -38,9 +57,14 @@ def main():
                 user=postgres
                 password=zpz12345"""
     preprocessor = preprocessing.Preprocessor(conn)
-    plans = preprocessor.runner(query)
-    logging.debug(query)
-    logging.debug(f"{full_plan_log_print_prefix} {plans}")
+    for query in queries:
+        plans = preprocessor.runner(query)
+        logging.debug(f"Current query: {query}")
+        logging.debug(f"length of plans for current query: {len(plans)}")
+        best_plan = plans[0]
+        annotator.annotate_query_plan(best_plan)
+        logging.debug(f"Annotated best plan:  {json.dumps(best_plan, sort_keys=True, indent=4)}")
+        print(json.dumps(best_plan, sort_keys=True, indent=4))
 
 
 if __name__ == "__main__":

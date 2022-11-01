@@ -37,19 +37,50 @@ class CONSTANTS:
     SCAN = "SCAN"
     JOIN = "JOIN"
     EMIT = "EMIT"
+    AUX = "AUXILIARY"
 
     # sub operation types
+    # SCAN
     INDEXSCAN = "Index Scan"
     SEQSCAN = "Sequential Scan"
+    INDEXONLYSCAN = "Index Only Scan"
+    BITMAPSCAN = "Bitmap Scan"
+    TIDSCAN = "TID Scan"
 
+    SCANTYPES = (INDEXSCAN, SEQSCAN, INDEXONLYSCAN, BITMAPSCAN, TIDSCAN)
+
+    # JOIN
     HASHJOIN = "Hash Join"
     INDEXJOIN = "Index Join"
     NL = "Nested Loop"
+    SORTMERGEJOIN = "Sort Merge Join"
 
+    JOINTYPES = (HASHJOIN, INDEXJOIN, NL, SORTMERGEJOIN)
+
+    # EMIT
     MATERIALIZE = "Materialize"
 
+    EMITTYPES = (MATERIALIZE)
+
+    # AUX
+    LIMIT = "Limit"
+    SORT = "Sort"
+    AGGREGATE = "Aggregate"
+    HASHAGGREGATE = "Hash Aggregate"
+    GROUPBYAGGREGATE = "Group By Aggregate"
+    UNIQUE = "Unique"
+    LOCKROWS = "LockRows"
+    SETOP = "SetOp"
+
+    APPEND = "Append"
+    SUBQUERYSCAN = "Subquery Scan"
+
+    AUXTYPES = (LIMIT, SORT, AGGREGATE, HASHAGGREGATE, GROUPBYAGGREGATE, UNIQUE, LOCKROWS, SETOP)
+
+    # attribute constant for explanation insertion
     EXPLANATION = "Explanation"
 
     # status used by annotation to denote few node status
     HASCHILDWITHINDEX = "Has Child With Index"
+    CONTAINRELATION = "Contain Relation"
 

@@ -81,11 +81,13 @@ def parse_sql_query_with_categories(query: str) -> dict[str, list]:
 
 
 def map_node_type_to_operation(node_type: str) -> str:
-    if re.search("Scan", node_type):
+    if node_type in CONSTANTS.SCANTYPES:
         return CONSTANTS.SCAN
-    elif node_type == "Nested Loop" or re.search("Join", node_type):
+    elif node_type in CONSTANTS.JOINTYPES:
         return CONSTANTS.JOIN
-    elif node_type == "Materialize":
+    elif node_type in CONSTANTS.EMITTYPES:
         return CONSTANTS.EMIT
+    elif node_type in CONSTANTS.AUXTYPES:
+        return CONSTANTS.AUX
     else:
         raise RuntimeError(f"unidentified node type: {node_type}")
