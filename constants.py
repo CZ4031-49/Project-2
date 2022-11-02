@@ -33,6 +33,9 @@ class CONSTANTS:
     PARENT_RELATIONSHIP_NAME = "Parent Relationship"
     SCAN_DIRECTION_NAME = "Scan Direction"
 
+    BITMAPHEAPSCAN_CONDITION_NAME = "Recheck Cond"
+    INDEX_CONDITION_NAME = "Index Cond"
+
     # operation type
     SCAN = "SCAN"
     JOIN = "JOIN"
@@ -45,9 +48,11 @@ class CONSTANTS:
     SEQSCAN = "Sequential Scan"
     INDEXONLYSCAN = "Index Only Scan"
     BITMAPSCAN = "Bitmap Scan"
+    BITMAPINDEXSCAN = "Bitmap Index Scan"
+    BITMAPHEAPSCAN = "Bitmap Heap Scan"
     TIDSCAN = "TID Scan"
 
-    SCANTYPES = (INDEXSCAN, SEQSCAN, INDEXONLYSCAN, BITMAPSCAN, TIDSCAN)
+    SCANTYPES = (INDEXSCAN, SEQSCAN, INDEXONLYSCAN, BITMAPSCAN, TIDSCAN, BITMAPHEAPSCAN, BITMAPINDEXSCAN)
 
     # JOIN
     HASHJOIN = "Hash Join"
@@ -71,11 +76,12 @@ class CONSTANTS:
     UNIQUE = "Unique"
     LOCKROWS = "LockRows"
     SETOP = "SetOp"
+    MEMOIZE = "Memoize"
 
     APPEND = "Append"
     SUBQUERYSCAN = "Subquery Scan"
 
-    AUXTYPES = (LIMIT, SORT, AGGREGATE, HASHAGGREGATE, GROUPBYAGGREGATE, UNIQUE, LOCKROWS, SETOP)
+    AUXTYPES = (LIMIT, SORT, AGGREGATE, HASHAGGREGATE, GROUPBYAGGREGATE, UNIQUE, LOCKROWS, SETOP, MEMOIZE)
 
     # attribute constant for explanation insertion
     EXPLANATION = "Explanation"

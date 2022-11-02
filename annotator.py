@@ -17,7 +17,23 @@ def annotate_query_plan(plan: dict) -> None:
     else:
         for next_plan in raw_plan[CONSTANTS.INTERMEDIATE_PLAN_NAME]:
             annotate_query_plan(next_plan)
-        operation = map_node_type_to_operation(raw_plan[CONSTANTS.NODE_TYPE_NAME])
+        try:
+            operation = map_node_type_to_operation(raw_plan[CONSTANTS.NODE_TYPE_NAME])
+        except ValueError as e:
+            print(f"current plan: \n"
+                  f"{json.dumps(raw_plan, indent=4, sort_keys=True)}\n"
+                  f"throws error: {e}")
+            """
+            unsupported nodes:  (remember to add here if you see new ones)
+            Memoize
+            """
+            raw_plan[CONSTANTS.EXPLANATION] = f"Node type: {raw_plan[CONSTANTS.NODE_TYPE_NAME]} " \
+                                          f"is not supported upon this project scope."
+            cur_contain_relation = []
+            for child in raw_plan[CONSTANTS.INTERMEDIATE_PLAN_NAME]:
+                cur_contain_relation += child[CONSTANTS.CONTAINRELATION]
+            raw_plan[CONSTANTS.CONTAINRELATION] = cur_contain_relation
+            return
         _explain_node(raw_plan, operation)
 
 
@@ -67,21 +83,30 @@ def _explain_node(plan: dict, node_type: str) -> None:
                 if CONSTANTS.HASCHILDWITHINDEX in child:
                     child[CONSTANTS.EXPLANATION] += f"\nThis node that has index scan in it child nodes is used by " \
                                                     f"its direct parent node as nes" \
-                                                    f"ted loop join, with a condition " \
-                                                    f"{plan[CONSTANTS.JOIN_FILTER_NAME]}. \n "
+                                                    f"ted loop join"
+                    if CONSTANTS.JOIN_FILTER_NAME in plan:
+                        child[CONSTANTS.EXPLANATION] += f", with a condition {plan[CONSTANTS.JOIN_FILTER_NAME]}."
+                    else:
+                        child[CONSTANTS.EXPLANATION] += f"."
                     has_index_scan_child = True
                 else:
                     both_has_index = False
                     child_without_index_size.append(child[CONSTANTS.PLAN_ROW_SIZE_NAME])
             if both_has_index:
                 explanation += f"This nested loop join has two operands that does index scan on original relation, " \
-                               f"hence this nested loop is a zig-zag join on both indices with" \
-                               f" this filter: {plan[CONSTANTS.JOIN_FILTER_NAME]}. "
+                               f"hence this nested loop is a zig-zag join on both indices"
+                if CONSTANTS.JOIN_FILTER_NAME in plan:
+                    explanation += f", with" \
+                                   f" this filter: {plan[CONSTANTS.JOIN_FILTER_NAME]}. "
+                else:
+                    explanation += f"."
+
             elif has_index_scan_child:
                 assert len(child_without_index_size) == 1, f"child without index size has length neq to 1 " \
                                                            f"({len(child_without_index_size)}), in node " \
                                                            f"{plan[CONSTANTS.NODE_TYPE_NAME]}."
-                explanation += f"Only one operand of this index join has index scan on original relation, and the one " \
+                explanation += f"Only one operand of this index join has index scan on original relation, " \
+                               f"and the one " \
                                f"without using index has size {child_without_index_size[0]}.Without knowing distinct " \
                                f"values on join condition for the operand that uses index, since this size is small, " \
                                f"heuristically index join performs better as only few index fetches are expected on " \
@@ -96,12 +121,19 @@ def _explain_node(plan: dict, node_type: str) -> None:
                 explanation += f"Both operands don't use index scans on their original relations, this is possible " \
                                f"especially for deep join trees with lots of intermediate results. In this case a " \
                                f"nested loop join is preferred possibly because size of two operands are both small. " \
-                               f"\nSize of two operands: {child_sizes}\n" \
-                               f"A block based nested loop is assumed with join " \
-                               f"filter {plan[CONSTANTS.JOIN_FILTER_NAME]} "
-            if not re.search("=", plan[CONSTANTS.JOIN_FILTER_NAME]):
-                explanation += f"\nThis join has an inequality condition {plan[CONSTANTS.JOIN_FILTER_NAME]} so " \
-                               f"only nested loop join can handle this condition well."
+                               f"\nSize of two operands: {child_sizes}\n"
+                if CONSTANTS.JOIN_FILTER_NAME in plan:
+                    explanation += f"A block based nested loop is assumed with join " \
+                                   f"filter {plan[CONSTANTS.JOIN_FILTER_NAME]} "
+                else:
+                    pass
+            if CONSTANTS.JOIN_FILTER_NAME in plan:
+                if not re.search("=", plan[CONSTANTS.JOIN_FILTER_NAME]):
+                    explanation += f"\nThis join has an inequality condition {plan[CONSTANTS.JOIN_FILTER_NAME]} so " \
+                                   f"only nested loop join can handle this condition well."
+            else:
+                explanation += f"\n This nested loop join has no filter, it can because either conditions " \
+                               f"are pushed down to scans or relations are small so a NL join is preferred."
         elif plan[CONSTANTS.NODE_TYPE_NAME] == CONSTANTS.INDEXJOIN:
             explanation += f"A join based on two well-formulated index.\n" \
                            f"Operation can thus directly manipulate indices instead of probing tuples, " \
@@ -129,7 +161,13 @@ def _explain_node(plan: dict, node_type: str) -> None:
                                                         f"is from a previous sort node on intermediate result."
         this_contain_relation = []
         for child in plan[CONSTANTS.INTERMEDIATE_PLAN_NAME]:
-            this_contain_relation += child[CONSTANTS.CONTAINRELATION]
+            try:
+                this_contain_relation += child[CONSTANTS.CONTAINRELATION]
+            except KeyError as e:
+                print(f"plan: \n"
+                      f"{json.dumps(plan, sort_keys=True, indent=4)}\n"
+                      f"throws key error {e}")
+                raise
         plan[CONSTANTS.CONTAINRELATION] = this_contain_relation
     elif node_type == CONSTANTS.SCAN:
         if plan[CONSTANTS.NODE_TYPE_NAME] in (CONSTANTS.INDEXSCAN, CONSTANTS.INDEXONLYSCAN):
@@ -157,6 +195,25 @@ def _explain_node(plan: dict, node_type: str) -> None:
                            f"because {plan[CONSTANTS.PLAN_ROW_SIZE_NAME]} is too big for index scan (which incurs " \
                            f"random I/O cost so size should be small) and too small for sequential scan."
             plan[CONSTANTS.HASCHILDWITHINDEX] = True
+        elif plan[CONSTANTS.NODE_TYPE_NAME] == CONSTANTS.BITMAPHEAPSCAN:
+            assert len(plan[CONSTANTS.INTERMEDIATE_PLAN_NAME]) == 1, f"a bitmap scan node has child with length " \
+                                                                     f"{len(plan[CONSTANTS.INTERMEDIATE_PLAN_NAME])} " \
+                                                                     f"instead of 1."
+            assert plan[CONSTANTS.INTERMEDIATE_PLAN_NAME][0][CONSTANTS.NODE_TYPE_NAME] == \
+                   CONSTANTS.BITMAPINDEXSCAN, f"a bitmap scan node has child of " \
+                                              f"{plan[CONSTANTS.INTERMEDIATE_PLAN_NAME][CONSTANTS.NODE_TYPE_NAME]} " \
+                                              f"instead of a bitmap index scan. "
+            # contain relation attribute, always followed by bitmap heap scan
+            explanation += f"A bitmap heap scan is always a direct parent of bitmap index scan.\n" \
+                           f"It uses index bitmap generated by condition " \
+                           f"{plan[CONSTANTS.BITMAPHEAPSCAN_CONDITION_NAME]} and fetch corresponding pages " \
+                           f"stored in the heap."
+        elif plan[CONSTANTS.NODE_TYPE_NAME] == CONSTANTS.BITMAPINDEXSCAN:
+            # doesn't contain relation attribute
+            explanation += f"A bitmap index scan is used to generate a bitmap based on indices of selected " \
+                           f"attribute(s).\n" \
+                           f"It has condition {plan[CONSTANTS.INDEX_CONDITION_NAME]}.\n" \
+                           f"Bit map index scan always has a bitmap heap scan node as its immediate parent node."
         elif plan[CONSTANTS.NODE_TYPE_NAME] == CONSTANTS.SEQSCAN:
             explanation += f"As sequential scan uses no auxiliary utilities of this relation: " \
                            f"{plan[CONSTANTS.RELATION_NAME]}, without looking parent nodes, " \
@@ -168,7 +225,17 @@ def _explain_node(plan: dict, node_type: str) -> None:
             query predicate. """
             explanation += f"TID scan is specific to PostgreSQL and only gets selected if query specifies " \
                            f"a TID predicate."
-        plan[CONSTANTS.CONTAINRELATION] = [plan[CONSTANTS.RELATION_NAME]]
+        try:
+            if plan[CONSTANTS.NODE_TYPE_NAME] not in (CONSTANTS.BITMAPINDEXSCAN):
+                plan[CONSTANTS.CONTAINRELATION] = [plan[CONSTANTS.RELATION_NAME]]
+            else:
+                plan[CONSTANTS.CONTAINRELATION] = []
+        except KeyError as e:
+            print(f"current plan: \n"
+                  f"{json.dumps(plan, indent=4, sort_keys=True)}\n"
+                  f"throws key error: \n"
+                  f"{e}")
+            raise
     elif node_type == CONSTANTS.AUX:
         if plan[CONSTANTS.NODE_TYPE_NAME] == CONSTANTS.LIMIT:
             """
@@ -209,6 +276,9 @@ def _explain_node(plan: dict, node_type: str) -> None:
         elif plan[CONSTANTS.NODE_TYPE_NAME] == CONSTANTS.SUBQUERYSCAN:
             explanation += f"A node that scans subquery intermediate result, as a " \
                            f"sub kind of SETOP. Used by outer query."
+        elif plan[CONSTANTS.NODE_TYPE_NAME] == CONSTANTS.MEMOIZE:
+            explanation += f"A memoize node caches intermediate result for speed up. It is" \
+                           f"an auxiliary node specific to machine."
         this_contain_relation = []
         for child in plan[CONSTANTS.INTERMEDIATE_PLAN_NAME]:
             this_contain_relation += child[CONSTANTS.CONTAINRELATION]

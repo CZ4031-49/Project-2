@@ -90,4 +90,4 @@ def map_node_type_to_operation(node_type: str) -> str:
     elif node_type in CONSTANTS.AUXTYPES:
         return CONSTANTS.AUX
     else:
-        raise RuntimeError(f"unidentified node type: {node_type}")
+        raise ValueError(f"unidentified node type: {node_type}")
