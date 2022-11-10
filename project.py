@@ -55,7 +55,7 @@ def main():
                 dbname=postgres
                 port=5432
                 user=postgres
-                password=zpz12345"""
+                password=zpz12345"""  # insert password here to connect to your database in PostgreSQL
     preprocessor = preprocessing.Preprocessor(conn)
     for query in queries:
         plans = preprocessor.runner(query)
@@ -66,6 +66,12 @@ def main():
         annotator.annotate_query_plan(best_plan)
         logging.debug(f"Annotated best plan:  {json.dumps(best_plan, sort_keys=True, indent=4)}")
         print(json.dumps(best_plan, sort_keys=True, indent=4))
+
+        logging.debug(f"debug alternate plan:  {json.dumps(plans[-2], sort_keys=True, indent=4)}")
+        second_best_plan = plans[-2]
+        annotator.annotate_query_plan(second_best_plan)
+        logging.debug(f"Annotated alternate plan:  {json.dumps(second_best_plan, sort_keys=True, indent=4)}")
+        print(json.dumps(second_best_plan, sort_keys=True, indent=4))
 
 
 if __name__ == "__main__":
