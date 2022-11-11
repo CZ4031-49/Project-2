@@ -5,7 +5,7 @@ DEBUG:root:Current query:
               ps.ps_suppkey = s.s_suppkey
         GROUP BY s.s_suppkey 
         
-DEBUG:root:length of plans for current query: 34
+DEBUG:root:length of plans for current query: 30
 DEBUG:root:debug cur plan:  {
     "Plan": {
         "Async Capable": false,
@@ -15,7 +15,7 @@ DEBUG:root:debug cur plan:  {
         "Node Type": "Aggregate",
         "Parallel Aware": false,
         "Partial Mode": "Simple",
-        "Plan Rows": 10000,
+        "Plan Rows": 150,
         "Plan Width": 36,
         "Plans": [
             {
@@ -25,8 +25,8 @@ DEBUG:root:debug cur plan:  {
                 "Node Type": "Nested Loop",
                 "Parallel Aware": false,
                 "Parent Relationship": "Outer",
-                "Plan Rows": 800000,
-                "Plan Width": 10,
+                "Plan Rows": 170,
+                "Plan Width": 24,
                 "Plans": [
                     {
                         "Async Capable": false,
@@ -35,7 +35,7 @@ DEBUG:root:debug cur plan:  {
                         "Node Type": "Nested Loop",
                         "Parallel Aware": false,
                         "Parent Relationship": "Outer",
-                        "Plan Rows": 800000,
+                        "Plan Rows": 170,
                         "Plan Width": 8,
                         "Plans": [
                             {
@@ -45,12 +45,12 @@ DEBUG:root:debug cur plan:  {
                                 "Node Type": "Index Only Scan",
                                 "Parallel Aware": false,
                                 "Parent Relationship": "Outer",
-                                "Plan Rows": 10000,
+                                "Plan Rows": 150,
                                 "Plan Width": 4,
                                 "Relation Name": "supplier",
                                 "Scan Direction": "Forward",
-                                "Startup Cost": 10000000000.28,
-                                "Total Cost": 10000000270.28
+                                "Startup Cost": 10000000000.15,
+                                "Total Cost": 10000000046.4
                             },
                             {
                                 "Alias": "ps",
@@ -58,7 +58,7 @@ DEBUG:root:debug cur plan:  {
                                 "Node Type": "Bitmap Heap Scan",
                                 "Parallel Aware": false,
                                 "Parent Relationship": "Inner",
-                                "Plan Rows": 80,
+                                "Plan Rows": 1,
                                 "Plan Width": 8,
                                 "Plans": [
                                     {
@@ -68,70 +68,56 @@ DEBUG:root:debug cur plan:  {
                                         "Node Type": "Bitmap Index Scan",
                                         "Parallel Aware": false,
                                         "Parent Relationship": "Outer",
-                                        "Plan Rows": 80,
+                                        "Plan Rows": 1,
                                         "Plan Width": 0,
                                         "Startup Cost": 0.0,
-                                        "Total Cost": 6001.31
+                                        "Total Cost": 1.45
                                     }
                                 ],
                                 "Recheck Cond": "(ps_suppkey = s.s_suppkey)",
                                 "Relation Name": "partsupp",
-                                "Startup Cost": 6001.33,
-                                "Total Cost": 6014.23
+                                "Startup Cost": 1.45,
+                                "Total Cost": 5.46
                             }
                         ],
-                        "Startup Cost": 10000006001.61,
-                        "Total Cost": 10060150527.48
+                        "Startup Cost": 10000000001.59,
+                        "Total Cost": 10000000866.81
                     },
                     {
+                        "Alias": "p",
                         "Async Capable": false,
-                        "Cache Key": "ps.ps_partkey",
-                        "Cache Mode": "logical",
-                        "Node Type": "Memoize",
+                        "Node Type": "Bitmap Heap Scan",
                         "Parallel Aware": false,
                         "Parent Relationship": "Inner",
                         "Plan Rows": 1,
-                        "Plan Width": 10,
+                        "Plan Width": 24,
                         "Plans": [
                             {
-                                "Alias": "p",
                                 "Async Capable": false,
-                                "Node Type": "Bitmap Heap Scan",
+                                "Index Cond": "(p_partkey = ps.ps_partkey)",
+                                "Index Name": "part_pkey",
+                                "Node Type": "Bitmap Index Scan",
                                 "Parallel Aware": false,
                                 "Parent Relationship": "Outer",
                                 "Plan Rows": 1,
-                                "Plan Width": 10,
-                                "Plans": [
-                                    {
-                                        "Async Capable": false,
-                                        "Index Cond": "(p_partkey = ps.ps_partkey)",
-                                        "Index Name": "part_pkey",
-                                        "Node Type": "Bitmap Index Scan",
-                                        "Parallel Aware": false,
-                                        "Parent Relationship": "Outer",
-                                        "Plan Rows": 1,
-                                        "Plan Width": 0,
-                                        "Startup Cost": 0.0,
-                                        "Total Cost": 0.43
-                                    }
-                                ],
-                                "Recheck Cond": "(p_partkey = ps.ps_partkey)",
-                                "Relation Name": "part",
-                                "Startup Cost": 0.43,
-                                "Total Cost": 4.44
+                                "Plan Width": 0,
+                                "Startup Cost": 0.0,
+                                "Total Cost": 0.18
                             }
                         ],
-                        "Startup Cost": 0.44,
-                        "Total Cost": 4.45
+                        "Recheck Cond": "(p_partkey = ps.ps_partkey)",
+                        "Relation Name": "part",
+                        "Startup Cost": 0.18,
+                        "Total Cost": 4.19
                     }
                 ],
-                "Startup Cost": 10000006002.05,
-                "Total Cost": 10063260742.6
+                "Startup Cost": 10000000001.77,
+                "Total Cost": 10000001574.94
             }
         ],
-        "Startup Cost": 10000006002.05,
+        "Startup Cost": 10000000001.77,
         "Strategy": "Sorted",
-        "Total Cost": 10063264867.6
+        "Total Cost": 10000001577.66
     }
 }
 DEBUG:root:Annotated best plan:  {
@@ -149,7 +135,7 @@ DEBUG:root:Annotated best plan:  {
         "Node Type": "Aggregate",
         "Parallel Aware": false,
         "Partial Mode": "Simple",
-        "Plan Rows": 10000,
+        "Plan Rows": 150,
         "Plan Width": 36,
         "Plans": [
             {
@@ -159,14 +145,14 @@ DEBUG:root:Annotated best plan:  {
                     "partsupp",
                     "part"
                 ],
-                "Explanation": "Node type Nested Loop: \nBoth operands don't use index scans on their original relations, this is possible especially for deep join trees with lots of intermediate results. In this case a nested loop join is preferred possibly because size of two operands are both small. \nSize of two operands: [800000, 1]\n\n This nested loop join has no filter, it can because either conditions are pushed down to scans or relations are small so a NL join is preferred.",
+                "Explanation": "Node type Nested Loop: Only one operand of this index join has index scan on original relation, and the one without using index has size 170.Without knowing distinct values on join condition for the operand that uses index, since this size is small, heuristically index join performs better as only few index fetches are expected on relation with index. \n This nested loop join has no filter, it can because either conditions are pushed down to scans or relations are small so a NL join is preferred.",
                 "Inner Unique": true,
                 "Join Type": "Inner",
                 "Node Type": "Nested Loop",
                 "Parallel Aware": false,
                 "Parent Relationship": "Outer",
-                "Plan Rows": 800000,
-                "Plan Width": 10,
+                "Plan Rows": 170,
+                "Plan Width": 24,
                 "Plans": [
                     {
                         "Async Capable": false,
@@ -174,13 +160,13 @@ DEBUG:root:Annotated best plan:  {
                             "supplier",
                             "partsupp"
                         ],
-                        "Explanation": "Node type Nested Loop: \nOnly one operand of this index join has index scan on original relation, and the one without using index has size 80.Without knowing distinct values on join condition for the operand that uses index, since this size is small, heuristically index join performs better as only few index fetches are expected on relation with index. \n This nested loop join has no filter, it can because either conditions are pushed down to scans or relations are small so a NL join is preferred.",
+                        "Explanation": "Node type Nested Loop: This nested loop join has two operands that does index scan on original relation, hence this nested loop is a zig-zag join on both indices.\n This nested loop join has no filter, it can because either conditions are pushed down to scans or relations are small so a NL join is preferred.",
                         "Inner Unique": false,
                         "Join Type": "Inner",
                         "Node Type": "Nested Loop",
                         "Parallel Aware": false,
                         "Parent Relationship": "Outer",
-                        "Plan Rows": 800000,
+                        "Plan Rows": 170,
                         "Plan Width": 8,
                         "Plans": [
                             {
@@ -189,18 +175,18 @@ DEBUG:root:Annotated best plan:  {
                                 "Contain Relation": [
                                     "supplier"
                                 ],
-                                "Explanation": "Node type Index Only Scan: \nThis is an Index Only Scan node.\nThere is no condition on supplier index scan. Without knowing predecessors of this node, this index scan is likely to be selectedas there is likely to be a join that has condition on this relation, or has build relation very small so a join fetching probe relation index is prefered. \nThis node that has index scan in it child nodes is used by its direct parent node as nested loop join.",
+                                "Explanation": "Node type Index Only Scan: This is an Index Only Scan node.\nThere is no condition on supplier index scan. Without knowing predecessors of this node, this index scan is likely to be selectedas there is likely to be a join that has condition on this relation, or has build relation very small so a join fetching probe relation index is prefered.  \nThis node that has index scan in it child nodes is used by its direct parent node as nested loop join.",
                                 "Has Child With Index": true,
                                 "Index Name": "supplier_pkey",
                                 "Node Type": "Index Only Scan",
                                 "Parallel Aware": false,
                                 "Parent Relationship": "Outer",
-                                "Plan Rows": 10000,
+                                "Plan Rows": 150,
                                 "Plan Width": 4,
                                 "Relation Name": "supplier",
                                 "Scan Direction": "Forward",
-                                "Startup Cost": 10000000000.28,
-                                "Total Cost": 10000000270.28
+                                "Startup Cost": 10000000000.15,
+                                "Total Cost": 10000000046.4
                             },
                             {
                                 "Alias": "ps",
@@ -208,95 +194,343 @@ DEBUG:root:Annotated best plan:  {
                                 "Contain Relation": [
                                     "partsupp"
                                 ],
-                                "Explanation": "Node type Bitmap Heap Scan: \nA bitmap heap scan is always a direct parent of bitmap index scan.\nIt uses index bitmap generated by condition (ps_suppkey = s.s_suppkey) and fetch corresponding pages stored in the heap.",
+                                "Explanation": "Node type Bitmap Heap Scan: A bitmap heap scan is always a direct parent of bitmap index scan.\nIt uses index bitmap generated by condition (ps_suppkey = s.s_suppkey) and fetch corresponding pages stored in the heap. \nThis node that has index scan in it child nodes is used by its direct parent node as nested loop join.",
+                                "Has Child With Index": true,
                                 "Node Type": "Bitmap Heap Scan",
                                 "Parallel Aware": false,
                                 "Parent Relationship": "Inner",
-                                "Plan Rows": 80,
+                                "Plan Rows": 1,
                                 "Plan Width": 8,
                                 "Plans": [
                                     {
                                         "Async Capable": false,
                                         "Contain Relation": [],
-                                        "Explanation": "Node type Bitmap Index Scan: \nA bitmap index scan is used to generate a bitmap based on indices of selected attribute(s).\nIt has condition (ps_suppkey = s.s_suppkey).\nBit map index scan always has a bitmap heap scan node as its immediate parent node.",
+                                        "Explanation": "Node type Bitmap Index Scan: A bitmap index scan is used to generate a bitmap based on indices of selected attribute(s).\nIt has condition (ps_suppkey = s.s_suppkey).\nBit map index scan always has a bitmap heap scan node as its immediate parent node.",
                                         "Index Cond": "(ps_suppkey = s.s_suppkey)",
                                         "Index Name": "partsupp_pkey",
-                                        "Node Type": "Bitmap Index Scan",
-                                        "Parallel Aware": false,
-                                        "Parent Relationship": "Outer",
-                                        "Plan Rows": 80,
-                                        "Plan Width": 0,
-                                        "Startup Cost": 0.0,
-                                        "Total Cost": 6001.31
-                                    }
-                                ],
-                                "Recheck Cond": "(ps_suppkey = s.s_suppkey)",
-                                "Relation Name": "partsupp",
-                                "Startup Cost": 6001.33,
-                                "Total Cost": 6014.23
-                            }
-                        ],
-                        "Startup Cost": 10000006001.61,
-                        "Total Cost": 10060150527.48
-                    },
-                    {
-                        "Async Capable": false,
-                        "Cache Key": "ps.ps_partkey",
-                        "Cache Mode": "logical",
-                        "Contain Relation": [
-                            "part"
-                        ],
-                        "Explanation": "Node type Memoize: \nA memoize node caches intermediate result for speed up. It isan auxiliary node specific to machine.",
-                        "Node Type": "Memoize",
-                        "Parallel Aware": false,
-                        "Parent Relationship": "Inner",
-                        "Plan Rows": 1,
-                        "Plan Width": 10,
-                        "Plans": [
-                            {
-                                "Alias": "p",
-                                "Async Capable": false,
-                                "Contain Relation": [
-                                    "part"
-                                ],
-                                "Explanation": "Node type Bitmap Heap Scan: \nA bitmap heap scan is always a direct parent of bitmap index scan.\nIt uses index bitmap generated by condition (p_partkey = ps.ps_partkey) and fetch corresponding pages stored in the heap.",
-                                "Node Type": "Bitmap Heap Scan",
-                                "Parallel Aware": false,
-                                "Parent Relationship": "Outer",
-                                "Plan Rows": 1,
-                                "Plan Width": 10,
-                                "Plans": [
-                                    {
-                                        "Async Capable": false,
-                                        "Contain Relation": [],
-                                        "Explanation": "Node type Bitmap Index Scan: \nA bitmap index scan is used to generate a bitmap based on indices of selected attribute(s).\nIt has condition (p_partkey = ps.ps_partkey).\nBit map index scan always has a bitmap heap scan node as its immediate parent node.",
-                                        "Index Cond": "(p_partkey = ps.ps_partkey)",
-                                        "Index Name": "part_pkey",
                                         "Node Type": "Bitmap Index Scan",
                                         "Parallel Aware": false,
                                         "Parent Relationship": "Outer",
                                         "Plan Rows": 1,
                                         "Plan Width": 0,
                                         "Startup Cost": 0.0,
-                                        "Total Cost": 0.43
+                                        "Total Cost": 1.45
                                     }
                                 ],
-                                "Recheck Cond": "(p_partkey = ps.ps_partkey)",
-                                "Relation Name": "part",
-                                "Startup Cost": 0.43,
-                                "Total Cost": 4.44
+                                "Recheck Cond": "(ps_suppkey = s.s_suppkey)",
+                                "Relation Name": "partsupp",
+                                "Startup Cost": 1.45,
+                                "Total Cost": 5.46
                             }
                         ],
-                        "Startup Cost": 0.44,
-                        "Total Cost": 4.45
+                        "Startup Cost": 10000000001.59,
+                        "Total Cost": 10000000866.81
+                    },
+                    {
+                        "Alias": "p",
+                        "Async Capable": false,
+                        "Contain Relation": [
+                            "part"
+                        ],
+                        "Explanation": "Node type Bitmap Heap Scan: A bitmap heap scan is always a direct parent of bitmap index scan.\nIt uses index bitmap generated by condition (p_partkey = ps.ps_partkey) and fetch corresponding pages stored in the heap. \nThis node that has index scan in it child nodes is used by its direct parent node as nested loop join.",
+                        "Has Child With Index": true,
+                        "Node Type": "Bitmap Heap Scan",
+                        "Parallel Aware": false,
+                        "Parent Relationship": "Inner",
+                        "Plan Rows": 1,
+                        "Plan Width": 24,
+                        "Plans": [
+                            {
+                                "Async Capable": false,
+                                "Contain Relation": [],
+                                "Explanation": "Node type Bitmap Index Scan: A bitmap index scan is used to generate a bitmap based on indices of selected attribute(s).\nIt has condition (p_partkey = ps.ps_partkey).\nBit map index scan always has a bitmap heap scan node as its immediate parent node.",
+                                "Index Cond": "(p_partkey = ps.ps_partkey)",
+                                "Index Name": "part_pkey",
+                                "Node Type": "Bitmap Index Scan",
+                                "Parallel Aware": false,
+                                "Parent Relationship": "Outer",
+                                "Plan Rows": 1,
+                                "Plan Width": 0,
+                                "Startup Cost": 0.0,
+                                "Total Cost": 0.18
+                            }
+                        ],
+                        "Recheck Cond": "(p_partkey = ps.ps_partkey)",
+                        "Relation Name": "part",
+                        "Startup Cost": 0.18,
+                        "Total Cost": 4.19
                     }
                 ],
-                "Startup Cost": 10000006002.05,
-                "Total Cost": 10063260742.6
+                "Startup Cost": 10000000001.77,
+                "Total Cost": 10000001574.94
             }
         ],
-        "Startup Cost": 10000006002.05,
+        "Startup Cost": 10000000001.77,
         "Strategy": "Sorted",
-        "Total Cost": 10063264867.6
+        "Total Cost": 10000001577.66
+    }
+}
+DEBUG:root:debug alternate plan:  {
+    "Plan": {
+        "Async Capable": false,
+        "Group Key": [
+            "s.s_suppkey"
+        ],
+        "Node Type": "Aggregate",
+        "Parallel Aware": false,
+        "Partial Mode": "Simple",
+        "Plan Rows": 150,
+        "Plan Width": 36,
+        "Plans": [
+            {
+                "Async Capable": false,
+                "Inner Unique": true,
+                "Join Type": "Inner",
+                "Node Type": "Nested Loop",
+                "Parallel Aware": false,
+                "Parent Relationship": "Outer",
+                "Plan Rows": 170,
+                "Plan Width": 24,
+                "Plans": [
+                    {
+                        "Async Capable": false,
+                        "Inner Unique": false,
+                        "Join Type": "Inner",
+                        "Node Type": "Nested Loop",
+                        "Parallel Aware": false,
+                        "Parent Relationship": "Outer",
+                        "Plan Rows": 170,
+                        "Plan Width": 8,
+                        "Plans": [
+                            {
+                                "Alias": "s",
+                                "Async Capable": false,
+                                "Index Name": "supplier_pkey",
+                                "Node Type": "Index Only Scan",
+                                "Parallel Aware": false,
+                                "Parent Relationship": "Outer",
+                                "Plan Rows": 150,
+                                "Plan Width": 4,
+                                "Relation Name": "supplier",
+                                "Scan Direction": "Forward",
+                                "Startup Cost": 10000000000.15,
+                                "Total Cost": 10000000046.4
+                            },
+                            {
+                                "Alias": "ps",
+                                "Async Capable": false,
+                                "Node Type": "Bitmap Heap Scan",
+                                "Parallel Aware": false,
+                                "Parent Relationship": "Inner",
+                                "Plan Rows": 1,
+                                "Plan Width": 8,
+                                "Plans": [
+                                    {
+                                        "Async Capable": false,
+                                        "Index Cond": "(ps_suppkey = s.s_suppkey)",
+                                        "Index Name": "partsupp_pkey",
+                                        "Node Type": "Bitmap Index Scan",
+                                        "Parallel Aware": false,
+                                        "Parent Relationship": "Outer",
+                                        "Plan Rows": 1,
+                                        "Plan Width": 0,
+                                        "Startup Cost": 0.0,
+                                        "Total Cost": 1.45
+                                    }
+                                ],
+                                "Recheck Cond": "(ps_suppkey = s.s_suppkey)",
+                                "Relation Name": "partsupp",
+                                "Startup Cost": 1.45,
+                                "Total Cost": 5.46
+                            }
+                        ],
+                        "Startup Cost": 20000000001.59,
+                        "Total Cost": 20000000866.81
+                    },
+                    {
+                        "Alias": "p",
+                        "Async Capable": false,
+                        "Node Type": "Bitmap Heap Scan",
+                        "Parallel Aware": false,
+                        "Parent Relationship": "Inner",
+                        "Plan Rows": 1,
+                        "Plan Width": 24,
+                        "Plans": [
+                            {
+                                "Async Capable": false,
+                                "Index Cond": "(p_partkey = ps.ps_partkey)",
+                                "Index Name": "part_pkey",
+                                "Node Type": "Bitmap Index Scan",
+                                "Parallel Aware": false,
+                                "Parent Relationship": "Outer",
+                                "Plan Rows": 1,
+                                "Plan Width": 0,
+                                "Startup Cost": 0.0,
+                                "Total Cost": 0.18
+                            }
+                        ],
+                        "Recheck Cond": "(p_partkey = ps.ps_partkey)",
+                        "Relation Name": "part",
+                        "Startup Cost": 0.18,
+                        "Total Cost": 4.19
+                    }
+                ],
+                "Startup Cost": 30000000001.77,
+                "Total Cost": 30000001574.94
+            }
+        ],
+        "Startup Cost": 30000000001.77,
+        "Strategy": "Sorted",
+        "Total Cost": 30000001577.66
+    }
+}
+DEBUG:root:Annotated alternate plan:  {
+    "Plan": {
+        "Async Capable": false,
+        "Contain Relation": [
+            "supplier",
+            "partsupp",
+            "part"
+        ],
+        "Explanation": "A general aggregation node without specifying aggregation method.",
+        "Group Key": [
+            "s.s_suppkey"
+        ],
+        "Node Type": "Aggregate",
+        "Parallel Aware": false,
+        "Partial Mode": "Simple",
+        "Plan Rows": 150,
+        "Plan Width": 36,
+        "Plans": [
+            {
+                "Async Capable": false,
+                "Contain Relation": [
+                    "supplier",
+                    "partsupp",
+                    "part"
+                ],
+                "Explanation": "Node type Nested Loop: Only one operand of this index join has index scan on original relation, and the one without using index has size 170.Without knowing distinct values on join condition for the operand that uses index, since this size is small, heuristically index join performs better as only few index fetches are expected on relation with index. \n This nested loop join has no filter, it can because either conditions are pushed down to scans or relations are small so a NL join is preferred.",
+                "Inner Unique": true,
+                "Join Type": "Inner",
+                "Node Type": "Nested Loop",
+                "Parallel Aware": false,
+                "Parent Relationship": "Outer",
+                "Plan Rows": 170,
+                "Plan Width": 24,
+                "Plans": [
+                    {
+                        "Async Capable": false,
+                        "Contain Relation": [
+                            "supplier",
+                            "partsupp"
+                        ],
+                        "Explanation": "Node type Nested Loop: This nested loop join has two operands that does index scan on original relation, hence this nested loop is a zig-zag join on both indices.\n This nested loop join has no filter, it can because either conditions are pushed down to scans or relations are small so a NL join is preferred.",
+                        "Inner Unique": false,
+                        "Join Type": "Inner",
+                        "Node Type": "Nested Loop",
+                        "Parallel Aware": false,
+                        "Parent Relationship": "Outer",
+                        "Plan Rows": 170,
+                        "Plan Width": 8,
+                        "Plans": [
+                            {
+                                "Alias": "s",
+                                "Async Capable": false,
+                                "Contain Relation": [
+                                    "supplier"
+                                ],
+                                "Explanation": "Node type Index Only Scan: This is an Index Only Scan node.\nThere is no condition on supplier index scan. Without knowing predecessors of this node, this index scan is likely to be selectedas there is likely to be a join that has condition on this relation, or has build relation very small so a join fetching probe relation index is prefered.  \nThis node that has index scan in it child nodes is used by its direct parent node as nested loop join.",
+                                "Has Child With Index": true,
+                                "Index Name": "supplier_pkey",
+                                "Node Type": "Index Only Scan",
+                                "Parallel Aware": false,
+                                "Parent Relationship": "Outer",
+                                "Plan Rows": 150,
+                                "Plan Width": 4,
+                                "Relation Name": "supplier",
+                                "Scan Direction": "Forward",
+                                "Startup Cost": 10000000000.15,
+                                "Total Cost": 10000000046.4
+                            },
+                            {
+                                "Alias": "ps",
+                                "Async Capable": false,
+                                "Contain Relation": [
+                                    "partsupp"
+                                ],
+                                "Explanation": "Node type Bitmap Heap Scan: A bitmap heap scan is always a direct parent of bitmap index scan.\nIt uses index bitmap generated by condition (ps_suppkey = s.s_suppkey) and fetch corresponding pages stored in the heap. \nThis node that has index scan in it child nodes is used by its direct parent node as nested loop join.",
+                                "Has Child With Index": true,
+                                "Node Type": "Bitmap Heap Scan",
+                                "Parallel Aware": false,
+                                "Parent Relationship": "Inner",
+                                "Plan Rows": 1,
+                                "Plan Width": 8,
+                                "Plans": [
+                                    {
+                                        "Async Capable": false,
+                                        "Contain Relation": [],
+                                        "Explanation": "Node type Bitmap Index Scan: A bitmap index scan is used to generate a bitmap based on indices of selected attribute(s).\nIt has condition (ps_suppkey = s.s_suppkey).\nBit map index scan always has a bitmap heap scan node as its immediate parent node.",
+                                        "Index Cond": "(ps_suppkey = s.s_suppkey)",
+                                        "Index Name": "partsupp_pkey",
+                                        "Node Type": "Bitmap Index Scan",
+                                        "Parallel Aware": false,
+                                        "Parent Relationship": "Outer",
+                                        "Plan Rows": 1,
+                                        "Plan Width": 0,
+                                        "Startup Cost": 0.0,
+                                        "Total Cost": 1.45
+                                    }
+                                ],
+                                "Recheck Cond": "(ps_suppkey = s.s_suppkey)",
+                                "Relation Name": "partsupp",
+                                "Startup Cost": 1.45,
+                                "Total Cost": 5.46
+                            }
+                        ],
+                        "Startup Cost": 20000000001.59,
+                        "Total Cost": 20000000866.81
+                    },
+                    {
+                        "Alias": "p",
+                        "Async Capable": false,
+                        "Contain Relation": [
+                            "part"
+                        ],
+                        "Explanation": "Node type Bitmap Heap Scan: A bitmap heap scan is always a direct parent of bitmap index scan.\nIt uses index bitmap generated by condition (p_partkey = ps.ps_partkey) and fetch corresponding pages stored in the heap. \nThis node that has index scan in it child nodes is used by its direct parent node as nested loop join.",
+                        "Has Child With Index": true,
+                        "Node Type": "Bitmap Heap Scan",
+                        "Parallel Aware": false,
+                        "Parent Relationship": "Inner",
+                        "Plan Rows": 1,
+                        "Plan Width": 24,
+                        "Plans": [
+                            {
+                                "Async Capable": false,
+                                "Contain Relation": [],
+                                "Explanation": "Node type Bitmap Index Scan: A bitmap index scan is used to generate a bitmap based on indices of selected attribute(s).\nIt has condition (p_partkey = ps.ps_partkey).\nBit map index scan always has a bitmap heap scan node as its immediate parent node.",
+                                "Index Cond": "(p_partkey = ps.ps_partkey)",
+                                "Index Name": "part_pkey",
+                                "Node Type": "Bitmap Index Scan",
+                                "Parallel Aware": false,
+                                "Parent Relationship": "Outer",
+                                "Plan Rows": 1,
+                                "Plan Width": 0,
+                                "Startup Cost": 0.0,
+                                "Total Cost": 0.18
+                            }
+                        ],
+                        "Recheck Cond": "(p_partkey = ps.ps_partkey)",
+                        "Relation Name": "part",
+                        "Startup Cost": 0.18,
+                        "Total Cost": 4.19
+                    }
+                ],
+                "Startup Cost": 30000000001.77,
+                "Total Cost": 30000001574.94
+            }
+        ],
+        "Startup Cost": 30000000001.77,
+        "Strategy": "Sorted",
+        "Total Cost": 30000001577.66
     }
 }

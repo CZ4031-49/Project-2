@@ -37,7 +37,7 @@ def annotate_query_plan(plan: dict) -> None:
 
 
 def _explain_node(plan: dict, node_type: str) -> None:
-    explanation = f"Node type {plan[CONSTANTS.NODE_TYPE_NAME]}: \n"
+    explanation = f"Node type: {plan[CONSTANTS.NODE_TYPE_NAME]}: \n" 
     # if plan[CONSTANTS.NODE_TYPE_NAME] == "Limit":
     #     print("debug")
     #     print(node_type)
