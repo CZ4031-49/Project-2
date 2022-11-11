@@ -5,6 +5,7 @@ from tkinter import *
 from tkinter.font import Font
 from tkinter import messagebox
 from preprocessing import Executor, PlannerConfig
+from annotator import *
 import argparse
 
 connection_string = ''
@@ -14,7 +15,7 @@ e = Executor(connection_string)
 
 class App(object):
 
-    def __init__(connection_string):
+    def __init__(parent, connection_string):
         self.root = parent
         self.root.title("Main Frame")
         self.frm_input_text = tk.Frame(self.root)
@@ -35,10 +36,12 @@ class App(object):
         self.frm_nlp = tk.Frame(self.root)
         self.frm_nlp.pack()
         # tree
+        '''
         self.frm_tree_text = tk.Frame(self.root)
         self.frm_tree_text.pack()
         self.frm_tree = tk.Frame(self.root)
         self.frm_tree.pack()
+        '''
         # diff
         '''
         self.frm_diff_text = tk.Frame(self.root)
@@ -48,31 +51,30 @@ class App(object):
         '''
         ##
         # btt = button
-        # input text for query?
+        # input text 
         self.frm_input_t = tk.Frame(self.frm_input)
         self.frm_input_t.pack(side=LEFT)
         self.frm_input_btt = tk.Frame(self.frm_input)
         self.frm_input_btt.pack(side=RIGHT)
 
-        # exp input text?
+        # exp input
         self.frm_nlp_t = tk.Frame(self.frm_nlp)
         self.frm_nlp_t.pack(side=LEFT)
         self.frm_nlp_btt = tk.Frame(self.frm_nlp)
         self.frm_nlp_btt.pack(side=RIGHT)
 
-        # tree text?
-        self.frm_tree_t = tk.Frame(self.frm_tree)
-        self.frm_tree_t.pack(side=LEFT)
-        self.frm_tree_btt = tk.Frame(self.frm_tree)
-        self.frm_tree_btt.pack(side=RIGHT)
-
-        # another tree text?
-        self.frm_tree_t = tk.Frame(self.frm_tree)
-        self.frm_tree_t.pack(side=LEFT)
-        self.frm_tree_btt = tk.Frame(self.frm_tree)
-        self.frm_tree_btt.pack(side=RIGHT)
-
+        # tree
         '''
+        self.frm_tree_t = tk.Frame(self.frm_tree)
+        self.frm_tree_t.pack(side=LEFT)
+        self.frm_tree_btt = tk.Frame(self.frm_tree)
+        self.frm_tree_btt.pack(side=RIGHT)
+
+        self.frm_tree_t = tk.Frame(self.frm_tree)
+        self.frm_tree_t.pack(side=LEFT)
+        self.frm_tree_btt = tk.Frame(self.frm_tree)
+        self.frm_tree_btt.pack(side=RIGHT)
+
         self.frm_diff_t = tk.Frame(self.frm_diff)
         self.frm_diff_t.pack(side=LEFT)
         self.frm_diff_btt = tk.Frame(self.frm_diff)
@@ -83,7 +85,7 @@ class App(object):
 
         self.input_text1 = tk.Label(
             self.frm_input_text, text='Please Input Query', font=(None, 16), width=60)
-        self.input_text1.pack(side=CENTER, pady=5)
+        self.input_text1.pack(side=LEFT, pady=5)
     
         self.input = tk.Text(self.frm_input_t, relief=GROOVE,
                               width=75, height=8, borderwidth=5, font=(None, 12))
@@ -109,7 +111,7 @@ class App(object):
         self.nlp_text1.pack(side=LEFT, pady=5)
 
         self.nlp_text2 = tk.Label(
-        self.frm_nlp_text, text='Second Best Execution Plan:', font=(None, 16), width=75)
+        self.frm_nlp_text, text='Second Best Query Execution Plan:', font=(None, 16), width=75)
         self.nlp_text2.pack(side=RIGHT, pady=5)
 
         self.nlp1 = tk.Text(self.frm_nlp_t, relief=GROOVE, width=75,
@@ -124,6 +126,7 @@ class App(object):
         self.placeholder1.pack()
 
         ####
+        '''
         self.tree_text1 = tk.Label(
             self.frm_tree_text, text='Best Query Tree Structure:', font=(None, 16), width=60)
         self.tree_text1.pack(side=LEFT, pady=5)
@@ -141,6 +144,7 @@ class App(object):
 
         self.placeholder2 = tk.Label(self.frm_tree_btt, width=10)
         self.placeholder2.pack()
+        '''
 
         self.placeholder3 = tk.Label(self.frm_diff_text, width=60)
         self.placeholder3.pack(pady=5)
@@ -167,15 +171,17 @@ class App(object):
         global query
         global desc
         global result
+
         query = self.input.get("1.0", END)
 
         result_best = e.get_best_plan(query)
         result_second_best = e.get_second_best_plan(query)
 
-        result_best_obj = json.loads(json.dumps(result_best))
-        result_second_best_obj = json.loads(json.dumps(result_second_best))
+     #  result_best_obj = json.loads(json.dumps(result_best))
+     #  result_second_best_obj = json.loads(json.dumps(result_second_best))
 
-        result_bst_nlp = self.get_description(result_obj)
+        result_best_nlp = annotate_query_plan(result_best)
+        result_second_best_nlp = annotate_query_plan(result_second_best)
 
       #  result_best_tree = self.get_tree(result_obj)
       #  result_second_best_tree = self.get_tree(result_obj)
@@ -186,9 +192,9 @@ class App(object):
        # self.tree2.configure(state='normal')
 
         self.nlp1.delete("1.0", END)
-        self.nlp1.insert(END, result_old_nlp)
+        self.nlp1.insert(END, result_best_nlp)
         self.nlp2.delete("1.0", END)
-        self.nlp2.insert(END, result_new_nlp)
+        self.nlp2.insert(END, result_second_best_nlp)
 
       #  self.tree1.delete("1.0", END)
       #  self.tree1.insert(END, result_old_tree)
@@ -216,14 +222,8 @@ class App(object):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--conn', help='postgresql connection string')
-    
-    args = parser.parse_args()
-    connection_string = args.conn
-
     e = Executor()
     root = tk.Tk()
-    app = App(connection_string)
+    app = App(root, connection_string)
     root.geometry('1500x1000+0+0')
     root.mainloop()
