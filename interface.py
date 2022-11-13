@@ -16,9 +16,11 @@ import logging
 
 class App(object):
 
-    def __init__(self, parent, connection_string):
+    def __init__(self, parent, connection_string, p):
         self.root = parent
         self.connection_string = connection_string
+        self.p = p
+
         self.root.title("Main Frame")
         self.frm_input_text = tk.Frame(self.root)
         self.frm_input_text.pack()
@@ -221,7 +223,7 @@ class App(object):
 
         query = self.input.get("1.0", END)
 
-        plans = p.runner(query)
+        plans = self.p.runner(query)
         best_plan = plans[-1]
         second_best_plan = plans[0]
         annotate_query_plan(best_plan)
@@ -293,17 +295,3 @@ class App(object):
         if result == True:
             self.root.destroy()
     
-
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--conn', help="connection string for database")
-    args = parser.parse_args()
-    conn = args.conn
-    p = Preprocessor(conn)
-
-    root = tk.Tk()
-    app = App(root, conn)
-    root.geometry('1500x1000+0+0')
-    root.mainloop()
