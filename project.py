@@ -3,7 +3,6 @@ import preprocessing
 import logging
 import annotator
 
-
 def main():
     full_plan_log_print_prefix = "Plans output:"
     try:
@@ -12,7 +11,7 @@ def main():
     except Exception as e:
         print(e)
     logging.basicConfig(
-        filename="test_prep.log", encoding="utf-8", level=logging.DEBUG
+        filename="test_prep.log", level=logging.DEBUG
     )
 
     # query = "SELECT * FROM customer c JOIN orders o ON o.o_custkey=c.c_custkey WHERE c.c_custkey < 100 LIMIT 10"
@@ -51,11 +50,8 @@ def main():
 
     ]
 
-    conn = """  host=localhost
-                dbname=postgres
-                port=5432
-                user=postgres
-                password=zpz12345"""  # insert password here to connect to your database in PostgreSQL
+    conn = "host=localhost dbname=tpch port=5432 user=postgres password=Phoneybone619" 
+
     preprocessor = preprocessing.Preprocessor(conn)
     for query in queries:
         plans = preprocessor.runner(query)
@@ -64,14 +60,25 @@ def main():
         logging.debug(f"debug cur plan:  {json.dumps(plans[-1], sort_keys=True, indent=4)}")
         best_plan = plans[-1]
         annotator.annotate_query_plan(best_plan)
+
+        best_plan_obj = json.dumps(best_plan, sort_keys=True, indent=4) #
+
+        best_plan = json.loads(best_plan_obj)
+
+
         logging.debug(f"Annotated best plan:  {json.dumps(best_plan, sort_keys=True, indent=4)}")
         print(json.dumps(best_plan, sort_keys=True, indent=4))
 
         logging.debug(f"debug alternate plan:  {json.dumps(plans[-2], sort_keys=True, indent=4)}")
         second_best_plan = plans[-2]
+
         annotator.annotate_query_plan(second_best_plan)
+
+        second_best_plan_obj = json.dumps(second_best_plan, sort_keys=True, indent=4) #
+
         logging.debug(f"Annotated alternate plan:  {json.dumps(second_best_plan, sort_keys=True, indent=4)}")
         print(json.dumps(second_best_plan, sort_keys=True, indent=4))
+        print(best_plan["Plan"]["Plans"])
 
 
 if __name__ == "__main__":
